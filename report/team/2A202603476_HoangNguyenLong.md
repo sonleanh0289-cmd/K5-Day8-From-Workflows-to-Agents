@@ -19,7 +19,6 @@
   - `test_approval_from_other_claim_is_denied_with_audit`: xác minh mượn `approval_id` của claim khác bị host chặn và ghi audit `policy_denied`.
   - `test_crash_and_resume_always_leaves_one_refund`: kiểm tra cả 3 điểm crash (`before_effect`, `after_effect_before_checkpoint`, `after_checkpoint`) đều an toàn khi resume.
   - `test_all_student_shapes_respect_per_order_cap`: xác minh cả 3 shape `workflow`, `single`, `orchestrator` đều qua T13 (`denied`) và T14 (`proposal_amount=150000`, thực nhận `120000`).
-- Commit chính: `<hash commit sau khi push>`
 
 ## 4. Bằng chứng
 
