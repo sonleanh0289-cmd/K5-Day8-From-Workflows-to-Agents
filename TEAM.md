@@ -13,7 +13,7 @@
 | --: | ------ | ---- | ----- | ------ | ------- |
 |   1 | Lê Anh Sơn | 2A202603440 | (điền email) | sonleanh0289-cmd | Workflow + Integration |
 |   2 | Kiều Đình Văn | 2A202603376 | (email) | vankd | Single agent |
-|   3 | Nguyễn Văn Đăng | 2A202603371 | (email) | nguyenvandang2201 | Orchestrator + Handoff |
+|   3 | Nguyễn Văn Đăng | 2A202603371 | nguyenvandang22012k5@gmail.com | nguyenvandang2201 | Orchestrator + Handoff |
 |   4 | Hoàng Nguyên Long | 2A202603476 | (email) | longhn-0108 | Ledger/Crash + Evaluation |
 
 ## Bảng đóng góp
@@ -23,9 +23,9 @@
 | Người | Vai | Commit | Test đã thêm hoặc sửa |
 | --- | --- | --- | --- |
 | Lê Anh Sơn | Workflow + Integration | `319022e` | `src/tests/test_workflow_extra.py` |
-| (Điền tên TV2) | Single agent | `(điền hash commit)` | `(điền tên file test của TV2)` |
-| Nguyễn Văn Đăng | Orchestrator + Handoff | `14e0d76` | `(điền tên file test của TV3)` |
-| (Điền tên TV4) | Ledger/Crash + Evaluation | `(điền hash commit)` | `(điền tên file test của TV4)` |
+| Kiều Đình Văn | Single agent | `(điền hash commit)` | `(điền tên file test của TV2)` |
+| Nguyễn Văn Đăng | Orchestrator, handoff và test | `14e0d76`, `d8a4211` | `src/tests/test_orchestrator_boundary.py` (2 test) |
+| Hoàng Nguyên Long | Ledger/Crash + Evaluation | `(điền hash commit)` | `src/tests/test_ledger_extra.py` |
 
 ## Cá nhân
 
