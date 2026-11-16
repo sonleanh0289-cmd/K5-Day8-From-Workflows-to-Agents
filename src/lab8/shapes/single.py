@@ -144,6 +144,8 @@ def _run(
     try:
         outcome = issue_refund(conn, claim_id, proposal, crash_at=crash_at)
     except InjectedCrash:
+        # Persist a sanitized trace for the interrupted run, then preserve the
+        # injected exception so the crash harness can observe and resume it.
         trace.add("crash", {"at": crash_at})
         trace.write()
         raise
