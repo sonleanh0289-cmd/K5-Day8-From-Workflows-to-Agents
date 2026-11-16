@@ -24,7 +24,7 @@ import sqlite3
 from typing import Any
 
 from lab8.db import connect
-from lab8.durability import issue_refund
+from lab8.durability import InjectedCrash, issue_refund
 from lab8.mock_llm import complete
 from lab8.runtime import run_react
 from lab8.schemas import Budget, RunResult, make_run_id
@@ -39,15 +39,20 @@ def run_claim(
     store_path: str,
     crash_at: str | None = None,
 ) -> RunResult:
-    del crash_at
     conn = connect(store_path)
     try:
-        return _run(conn, claim_id, seed=seed)
+        return _run(conn, claim_id, seed=seed, crash_at=crash_at)
     finally:
         conn.close()
 
 
-def _run(conn: sqlite3.Connection, claim_id: str, *, seed: int) -> RunResult:
+def _run(
+    conn: sqlite3.Connection,
+    claim_id: str,
+    *,
+    seed: int,
+    crash_at: str | None = None,
+) -> RunResult:
     budget = Budget()
     run_id = make_run_id("single", claim_id, seed)
     trace = Trace(run_id)
@@ -136,7 +141,12 @@ def _run(conn: sqlite3.Connection, claim_id: str, *, seed: int) -> RunResult:
             error_reason=error_reason,
         )
 
-    outcome = issue_refund(conn, claim_id, proposal)
+    try:
+        outcome = issue_refund(conn, claim_id, proposal, crash_at=crash_at)
+    except InjectedCrash:
+        trace.add("crash", {"at": crash_at})
+        trace.write()
+        raise
     trace.add(
         "host_refund",
         {
