@@ -17,19 +17,19 @@ Phần này nối tiếp phần mini research ở buổi lý thuyết (slide 62�
 
 | Field | Hướng dẫn | Nhóm điền |
 | --- | --- | --- |
-| CÂU | R1 / R2 / R3 / R4 | R1 · Scaling |
-| SOURCE | Paper/blog, năm, URL, loại bằng chứng (benchmark, production report, blog kinh nghiệm) | Kim & Liu, Google Research (2026), [Towards a science of scaling agent systems: When and why agent systems work](https://www.research.google/blog/towards-a-science-of-scaling-agent-systems-when-and-why-agent-systems-work/); controlled benchmark across 180 agent configurations. |
-| CLAIM | Một kết luận gốc của nguồn. Không viết rộng hơn phạm vi paper | Trong benchmark của tác giả, phối hợp nhiều agent giúp task song song hóa nhưng có thể làm giảm hiệu quả ở task tuần tự. |
-| BOUNDARY | Model / dataset / setup giới hạn kết luận đó | Kết luận thuộc setup, model và benchmark của nghiên cứu; không khẳng định áp dụng trực tiếp cho LogiX-VN, MockLLM hoặc hidden set của lab. |
-| HYPOTHESIS | Nếu đổi shape A→B (hoặc bật/tắt một thành phần), metric X sẽ đổi theo hướng nào, khoảng bao nhiêu | Với luồng claim chủ yếu tuần tự, workflow và orchestrator có thể đạt pass rate tương tự; workflow dự kiến giảm cost/success so với orchestrator ít nhất 20%. |
-| METHOD | Biến giữ cố định: model, tools, seed, corpus, giá, evaluator. Biến duy nhất được thay đổi: … | Ablation topology: so workflow với orchestrator; giữ MockLLM, tool inventory, 14 public claims, seeds 11/22/33/44/55, giá và evaluator cố định. Đổi shape kiến trúc; số lượt gọi tool/model và cost là kết quả đo, không được ép bằng nhau. |
-| FAILURE / METRIC | Một lỗi dự kiến và cách đo nó: pass rate, pass^5, variance, cost/success, leak, bypass | Dự kiến phối hợp thêm không tăng pass tương xứng với cost trên flow tuần tự. Đo pass rate, pass^5, seed variance, cost/success và mean/p95 steps từ `reports/benchmark.json`; lỗi dự kiến: cost/success tăng mà pass rate không tăng. |
+| CÂU | R1 / R2 / R3 / R4 | |
+| SOURCE | Paper/blog, năm, URL, loại bằng chứng (benchmark, production report, blog kinh nghiệm) | |
+| CLAIM | Một kết luận gốc của nguồn. Không viết rộng hơn phạm vi paper | |
+| BOUNDARY | Model / dataset / setup giới hạn kết luận đó | |
+| HYPOTHESIS | Nếu đổi shape A→B (hoặc bật/tắt một thành phần), metric X sẽ đổi theo hướng nào, khoảng bao nhiêu | |
+| METHOD | Biến giữ cố định: model, tools, seed, corpus, giá, evaluator. Biến duy nhất được thay đổi: … | |
+| FAILURE / METRIC | Một lỗi dự kiến và cách đo nó: pass rate, pass^5, variance, cost/success, leak, bypass | |
 
 ## Kết quả ablation
 
-- Lệnh đã chạy (copy nguyên văn): `python -m lab8.benchmark --shapes workflow,single,orchestrator,swarm --cases data/public_claims.jsonl --seeds 11,22,33,44,55 --out reports/benchmark.json`
-- Run id / file report: `R-workflow-C-001-s11`; `src/reports/benchmark.json`.
-- Kết quả so với hypothesis (đúng / sai / không kết luận được), kèm số liệu: Ủng hộ giả thuyết về cost: workflow và orchestrator cùng pass 70/70 (pass rate 1.000, pass^5 1.000), nhưng cost/success lần lượt là 28.80 và 57.12 VND, workflow thấp hơn khoảng 49%. Chưa có chênh lệch pass để đánh giá hiệu năng; không kết luận về task khác.
+- Lệnh đã chạy (copy nguyên văn):
+- Run id / file report:
+- Kết quả so với hypothesis (đúng / sai / không kết luận được), kèm số liệu:
 - Giới hạn: MockLLM không phải model sản xuất, latency là `unavailable`.
 
 Muốn đi xa hơn một ablation để lấy điểm cộng thì xem [docs/bonus_topics.md](../../docs/bonus_topics.md).

@@ -17,7 +17,6 @@
 - Giới hạn vòng ReAct ở 8 bước; ghi trace theo contract và chỉ đưa các field đã chọn lọc vào trace.
 - Thêm test `test_single_resolves_claim_and_writes_matching_trace`, kiểm tra claim `C-001`, số tiền đề xuất/hoàn, audit và `run_id` trong trace.
 - Bổ sung truyền `crash_at` vào `issue_refund`; khi crash được tiêm, shape ghi trace đã lọc rồi để `InjectedCrash` truyền ra ngoài.
-- Tham gia CP5 bằng cách chạy public benchmark 4 shape × 14 claim × 5 seed và ghi nhận metric vào hồ sơ nhóm.
 
 ## 4. Bằng chứng
 
@@ -30,8 +29,6 @@
 - Đã chạy riêng test T12 crash/resume của `single`; kết quả: `1 passed`.
 - Cổng host `python -m pytest -q`: `65 passed, 248 deselected`.
 - Crash suite `python -m lab8.crash_test --count 20 --out reports/crash.json`: `crash_safety 20/20`.
-- Public benchmark `src/reports/benchmark.json`, run id dẫn chứng `R-workflow-C-001-s11`: workflow 70/70 pass, pass^5 1.000, cost/success mô phỏng 28.80 VND; toàn benchmark có 70 trial mỗi shape.
-- `python -m lab8.check_submission`: `0 FAIL, 1 WARN` trước khi commit các file CP5; warning là working tree còn thay đổi.
 - Các commit đã có trên nhánh `vankd` và được push lên `origin/vankd`.
 
 ## 5. Công cụ AI đã dùng
@@ -41,4 +38,4 @@
 
 ## 6. Tự đánh giá
 
-Đã hoàn thành phần single ở CP2–CP4 và tạo bằng chứng public benchmark ở CP5. Benchmark public đề xuất workflow là kiến trúc đủ dùng với cost thấp nhất; quyết định nhóm và thông tin các thành viên khác cần được xác nhận. Hidden self-check/grade chưa thực hiện vì workspace chưa có `student_drop/`.
+Đã hoàn thành phần single ở CP2–CP4 theo các kết quả kiểm tra nêu trên. Bước tiếp theo là tham gia benchmark và hoàn thiện các báo cáo nhóm ở CP5; kết quả hidden chính thức chưa được xác nhận.
