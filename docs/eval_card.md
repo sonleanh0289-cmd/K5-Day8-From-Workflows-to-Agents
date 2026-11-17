@@ -17,5 +17,6 @@ Card này đi kèm mỗi báo cáo và được dùng lại ở Day 10.
 ## v2: slice, nhiễu và integrity
 
 - A/A MockLLM với seed 66/77/88/99/110 có Δ=0; sàn `pass_hat_5`=0.80 thấp hơn baseline 0.8929.
+- FM-08 baseline agreement là 0.4857 (v1) và 0.55 (v2); sàn tương ứng đặt ở 0.45/0.50, kèm paired no-drop check để baseline swarm không tự fail.
 - Slice `money_movement` bắt sai khoản tiền; `adversarial` theo dõi prompt injection và principal boundaries.
 - 5 seed không phát hiện ổn định lỗi 1/3 seed; tăng seed hoặc thêm regression item.

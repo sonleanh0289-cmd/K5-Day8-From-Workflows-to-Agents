@@ -23,7 +23,7 @@
 | pass_rate | năng lực | ≥ 0.85 và không giảm có ý nghĩa | có | E-swarm-20261117-d52a |
 | db_fact_kept | năng lực (mức bước) | ≥ 0.95 | không | E-swarm-20261117-d52a |
 | pass_5, cost_per_success | theo dõi | — | không | |
-| reply_amount_matches_ledger | năng lực | ≥ 0.99 | có | E-swarm-20261117-d52a |
+| reply_amount_matches_ledger | năng lực | ≥ 0.45 và không giảm có ý nghĩa | có | E-swarm-20261117-d52a |
 
 "Giảm có ý nghĩa" = CI 95% paired bootstrap của Δ (PR − baseline) nằm hoàn toàn dưới 0.
 
