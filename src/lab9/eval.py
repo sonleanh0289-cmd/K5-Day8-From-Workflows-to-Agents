@@ -17,6 +17,7 @@ import json
 import platform
 import tempfile
 import time
+import os
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -42,6 +43,7 @@ def load_spec(path: Path = SPEC) -> dict[str, Any]:
 def make_task(shape: str, world: dict[str, Any], claims: list[dict[str, Any]], labels: dict[str, Any], tmp: Path):
     def run_one(inputs: dict[str, Any]) -> dict[str, Any]:
         claim_id, seed = inputs["claim_id"], inputs["seed"]
+        tmp.mkdir(parents=True, exist_ok=True)
         store = tmp / f"{shape}-{claim_id}-{seed}.sqlite"
         prepare_from_memory(store, world, claims)
         started = time.time()
@@ -84,25 +86,34 @@ def run_eval(shape: str, spec: dict[str, Any], seeds: list[int] | None = None) -
     seeds = list(seeds or spec["seeds"])
     slices_of = {it["item_id"]: list(it.get("slices") or []) for it in items}
     metric_ids = [m["id"] for m in spec["metrics"] if m["id"] in GRADERS]
+    aggregate_ids = [m["id"] for m in spec["metrics"] if m["id"] in ("pass_hat_5", "pass_at_5")]
     cases = [Case(name=f"{it['item_id']}@{s}", inputs={"claim_id": it["claim_id"], "seed": s},
                   expected_output=labels[it["claim_id"]], metadata={"item_id": it["item_id"], "seed": s})
              for it in items for s in seeds]
     dataset = Dataset(name=f"logix-{spec['eval_set_version']}", cases=cases,
                       evaluators=[GRADERS[m]() for m in metric_ids])
-    with tempfile.TemporaryDirectory(prefix="lab9-eval-", ignore_cleanup_errors=True) as tmp:
-        # max_concurrency=1: shapes write traces/ and SQLite; keep runs deterministic.
-        report = dataset.evaluate_sync(make_task(shape, world, claims, labels, Path(tmp)),
-                                       max_concurrency=1, progress=False)
+    # Keep scratch DBs under the repository workspace so Windows antivirus/indexers
+    # cannot leave temp files locked during cleanup.
+    tmp = Path("reports/.lab9-eval")
+    tmp.mkdir(parents=True, exist_ok=True)
+    Path(tmp).mkdir(parents=True, exist_ok=True)
+    # max_concurrency=1: shapes write traces/ and SQLite; keep runs deterministic.
+    report = dataset.evaluate_sync(make_task(shape, world, claims, labels, Path(tmp)),
+                                   max_concurrency=1, progress=False)
+    import shutil
+    shutil.rmtree(tmp, ignore_errors=True)
+    # SQLite scratch files are disposable; Windows may retain a lock briefly.
     rows = []
     for c in report.cases:
         scores = {}
-        for m, g in zip(metric_ids, (GRADERS[m].__name__ for m in metric_ids)):
-            res = c.assertions.get(g)
+        for m in metric_ids:
+            res = c.assertions.get(m) or c.assertions.get(GRADERS[m].__name__)
             scores[m] = None if res is None else bool(res.value)
         rows.append({"item_id": c.metadata["item_id"], "seed": c.metadata["seed"],
                      "slices": slices_of.get(c.metadata["item_id"], []), **scores,
                      "cost": float(c.output["result"].get("cost_estimate") or 0.0)})
-    failures = [f"{c.name}:{f.name}:{f.error_message[:80]}" for c in report.cases for f in c.evaluator_failures]
+    metric_ids += aggregate_ids
+    failures = [f"{f.name}:{f.error_message[:80]}" for f in report.failures]
     eval_set_sha = evalset.sha12(Path(spec["eval_set"]))
     run_id = f"E-{shape}-{date.today():%Y%m%d}-{eval_set_sha[:4]}"
     return {"run_id": run_id, "shape": shape,
@@ -116,6 +127,8 @@ def run_eval(shape: str, spec: dict[str, Any], seeds: list[int] | None = None) -
 def aggregate(rows: list[dict[str, Any]], metric_ids: list[str], k_values: list[int] = ()) -> dict[str, Any]:
     out: dict[str, Any] = {}
     for m in metric_ids:
+        if m in ("pass_hat_5", "pass_at_5"):
+            continue
         vals = [r[m] for r in rows if r[m] is not None]
         if m in ("secret_leak", "approval_bypass"):
             out[m] = sum(vals)                       # safety: a count, must be 0
@@ -139,6 +152,15 @@ def aggregate(rows: list[dict[str, Any]], metric_ids: list[str], k_values: list[
                 out[f"{name}_{k}"] = None
     passes = sum(bool(r.get("pass_rate")) for r in rows)
     out["cost_per_success"] = round(sum(r["cost"] for r in rows) / passes, 4) if passes else None
+    if "reply_amount_matches_ledger" in metric_ids:
+        vals = [r["reply_amount_matches_ledger"] for r in rows if r["reply_amount_matches_ledger"] is not None]
+        out["reply_amount_matches_ledger"] = round(sum(vals) / len(vals), 4) if vals else None
+    if "pass_hat_5" in metric_ids:
+        by_item_passes: dict[str, list[bool]] = {}
+        for row in rows:
+            by_item_passes.setdefault(row["item_id"], []).append(bool(row.get("pass_rate")))
+        out["pass_hat_5"] = round(sum(stats.pass_hat_k(len(v), sum(v), 5) for v in by_item_passes.values()) /
+                                  len(by_item_passes), 4) if by_item_passes and min(map(len, by_item_passes.values())) >= 5 else None
     return out
 
 

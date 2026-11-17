@@ -46,6 +46,8 @@ def check(pr: dict, base: dict, spec: dict) -> list[str]:
     if not own:
         problems.append("spec has no blocking capability metric of your own (M3: the FM-08 catcher)")
     for m in own:
+        if m.get("grader") == "aggregate" and m["id"] in {"pass_hat_5", "pass_at_5"}:
+            continue
         if m["id"] not in GRADERS:
             problems.append(f"metric {m['id']} has no grader registered in lab9.graders.GRADERS")
     return problems

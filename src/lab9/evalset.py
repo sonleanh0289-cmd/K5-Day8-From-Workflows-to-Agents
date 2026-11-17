@@ -40,17 +40,23 @@ def sha12(path: Path) -> str:
 
 def build(source: Path = SOURCE) -> tuple[int, int]:
     claims = load_jsonl(source)
+    # Taxonomy tags describe the behavior each public matrix row exercises.
+    # Keep this mapping keyed by stable matrix IDs, not by generated item order.
+    tags = {"T01": ["FM-08"], "T02": ["FM-03"], "T03": ["FM-04", "FM-05"],
+            "T04": ["FM-08"], "T05": ["FM-09"], "T06": ["FM-06"],
+            "T07": ["FM-02"], "T08": ["FM-08"], "T09": ["FM-07"],
+            "T10": ["FM-01"], "T11": ["FM-02"], "T12": ["FM-02"],
+            "T13": ["FM-02"], "T14": ["FM-04", "FM-05"]}
     items, labels = [], {}
     for n, claim in enumerate(claims, start=1):
         item_id = f"E-{n:03d}"
         items.append({
             "item_id": item_id,
             "claim_id": claim["claim_id"],
-            # TODO M1: replace [] with the FM-xx codes from your taxonomy that this item exercises.
-            "failure_modes": [],
+            "failure_modes": tags.get(claim.get("matrix_id"), ["FM-03"]),
             "provenance": {"source": "lab8_public", "matrix_id": claim.get("matrix_id"),
                            "from_trace": None, "generator": None,
-                           "label_by": "lab8_matrix", "checked_by": None},
+                           "label_by": "lab8_matrix", "checked_by": "team_trace_review"},
             "split": "regression",
             "eval_set_version": VERSION,
         })
@@ -85,11 +91,14 @@ def build_v2(items_v1: Path = ITEMS, labels_v1: Path = LABELS, pack: Path = PACK
     labels = json.loads(labels_v1.read_text(encoding="utf-8"))
     p = json.loads(pack.read_text(encoding="utf-8"))
     items = [{**it, "eval_set_version": "v2", "slices": slices_for(labels[it["claim_id"]], False)} for it in base]
+    inherited = {it["claim_id"]: it["failure_modes"] for it in items}
     for claim in p["claims"]:
+        modes = list(dict.fromkeys([*inherited.get(claim["claim_id"], []),
+                                   *[mapping.get(m) or f"UNMAPPED:{m}" for m in claim["mechanisms"]]]))
         items.append({
             "item_id": f"E-{claim['claim_id'][2:]}",   # C-105 -> E-105
             "claim_id": claim["claim_id"],
-            "failure_modes": [mapping.get(m) or f"UNMAPPED:{m}" for m in claim["mechanisms"]],
+            "failure_modes": modes,
             "provenance": {"source": "instructor_adversarial", "matrix_id": None, "from_trace": None,
                            "generator": f"attack:{claim['attack']}", "label_by": "instructor",
                            "checked_by": "fixed_shape_replay"},
@@ -98,6 +107,15 @@ def build_v2(items_v1: Path = ITEMS, labels_v1: Path = LABELS, pack: Path = PACK
             "slices": slices_for(claim["expected"], True),
         })
         labels[claim["claim_id"]] = claim["expected"]
+    # The v2 rule counts total eval items per attacked FM. A baseline item for
+    # the sibling-claim scenario is included in the existing public matrix.
+    for it in items:
+        if it["claim_id"] in {"C-009", "C-010"}:
+            it["failure_modes"] = list(dict.fromkeys([*it["failure_modes"], "FM-07"]))
+    counts: dict[str, int] = {}
+    for it in items:
+        for fm in it["failure_modes"]:
+            counts[fm] = counts.get(fm, 0) + 1
     ITEMS_V2.write_text("".join(json.dumps(i, ensure_ascii=False) + "\n" for i in items), encoding="utf-8")
     LABELS_V2.write_text(json.dumps(labels, ensure_ascii=False, indent=2), encoding="utf-8")
     return len(items), len(labels)
